@@ -165,8 +165,16 @@ const loadFontRandomDonuts = () => {
         bevelSegments: 3,
       })
 
+      const colorParams = {
+        color: 0xff0000,
+      }
       textGeometry.center()
-      const textMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 })
+      const textMaterial = new THREE.MeshStandardMaterial({
+        color: colorParams.color,
+      })
+      gui.addColor(colorParams, 'color').onChange(() => {
+        textMaterial.color.set(colorParams.color)
+      })
       // textMaterial.wireframe = true
       const text = new THREE.Mesh(textGeometry, textMaterial)
       text.position.set(0, 2.2, 2)
