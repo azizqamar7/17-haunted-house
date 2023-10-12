@@ -1,8 +1,22 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader'
 import * as dat from 'dat.gui'
 import { MeshStandardMaterial, PointLight } from 'three'
+
+// load audio
+// const audio = document.querySelector('audio')
+// console.log(audio)
+// audio.muted = true
+// audio.autoplay = true
+const playButton = document.getElementById('playButton')
+playButton.addEventListener('click', function () {
+  const audio = new Audio('music/demon-laugh.mp3')
+  audio.loop = true
+  audio.play()
+})
 
 /**
  * Base
@@ -67,6 +81,13 @@ grassAmbientOcclusionTexture.wrapT = THREE.RepeatWrapping
 grassNormalTexture.wrapT = THREE.RepeatWrapping
 grassRoughnessTexture.wrapT = THREE.RepeatWrapping
 
+const graveColorTexture = textureLoader.load('textures/graves/color.jpg')
+const graveFrontTexture = []
+
+for (let i = 1; i <= 10; i++) {
+  graveFrontTexture.push(textureLoader.load(`textures/graves/${i}.jpg`))
+}
+
 /**
  * House
  */
@@ -123,6 +144,52 @@ door.position.z = 2 + 0.01
 door.position.y = 1
 house.add(door)
 
+// Fonts
+const fontLoader = new FontLoader()
+
+const loadFontRandomDonuts = () => {
+  fontLoader.load(
+    '/fonts/helvetiker_regular.typeface.json',
+
+    // onLoad callback
+    (font) => {
+      const textGeometry = new TextGeometry('Haunted House', {
+        font: font,
+        size: 0.2,
+        height: 0.005,
+        curveSegments: 5,
+        bevelEnabled: true,
+        bevelThickness: 0.03,
+        bevelSize: 0.02,
+        bevelOffset: 0,
+        bevelSegments: 3,
+      })
+
+      textGeometry.center()
+      const textMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 })
+      // textMaterial.wireframe = true
+      const text = new THREE.Mesh(textGeometry, textMaterial)
+      text.position.set(0, 2.2, 2)
+
+      //   text.scale.set(0.5, 0.5, 0.5)
+      scene.add(text)
+    },
+
+    // onProgress callback
+    (xhr) => {
+      console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    },
+
+    // onError callback
+    (err) => {
+      console.log('An error happened')
+    }
+  )
+}
+
+// Initial load
+loadFontRandomDonuts()
+
 // Bushes
 const bushGeometry = new THREE.SphereGeometry(1, 16, 16)
 const bushMaterial = new THREE.MeshStandardMaterial({ color: '#89c854' })
@@ -150,17 +217,26 @@ const graves = new THREE.Group()
 scene.add(graves)
 
 const graveGeometry = new THREE.BoxGeometry(0.6, 0.8, 0.2)
-const graveMaterial = new THREE.MeshStandardMaterial({ color: '#b2b6b1' })
 
-for (let i = 0; i < 50; i++) {
+for (let i = 1; i <= 10; i++) {
   const angle = Math.random() * Math.PI * 2
   const radius = 3 + Math.random() * 6
   const x = Math.cos(angle) * radius
   const z = Math.sin(angle) * radius
 
-  const grave = new THREE.Mesh(graveGeometry, graveMaterial)
-  //   grave.material.materials[4].map = doorColorTexture
-  console.log(grave.material)
+  const graveMaterials = [
+    new THREE.MeshStandardMaterial({ color: '#b2b6b1' }), // Right side
+    new THREE.MeshStandardMaterial({ color: '#b2b6b1' }), // Left side
+    new THREE.MeshStandardMaterial({ color: '#b2b6b1' }), // Top side
+    new THREE.MeshStandardMaterial({ color: '#b2b6b1' }), // Bottom side
+    new THREE.MeshStandardMaterial({
+      map: graveFrontTexture[i],
+    }), // Front side (with texture)
+    new THREE.MeshStandardMaterial({ color: '#b2b6b1' }), // Back side
+  ]
+
+  const grave = new THREE.Mesh(graveGeometry, graveMaterials)
+
   grave.position.set(x, 0.3, z)
   grave.rotation.y = (Math.random() - 0.5) * 0.4
   grave.rotation.z = (Math.random() - 0.5) * 0.4
